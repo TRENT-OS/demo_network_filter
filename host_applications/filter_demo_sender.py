@@ -14,8 +14,8 @@ import socket
 import sys
 import time
 
-from util import filter_demo_msg_pb2
-from util import filter_demo_util
+from protocol import filter_demo_protocol
+from utils import filter_demo_utils
 
 # Default docker bridge network gateway IP
 RECEIVER_ADDRESS = "172.17.0.1"
@@ -33,10 +33,10 @@ def send_message_queue(message_queue, receiver_addr):
         port.
     """
     for message in message_queue:
-        if isinstance(message, filter_demo_msg_pb2.GPSDataMsg):
-            outgoing_data = message.SerializeToString()
+        if isinstance(message, filter_demo_protocol.GPSDataMsg):
+            outgoing_data = message.serialize_message_to_byte_array()
             send_data(outgoing_data, receiver_addr)
-            filter_demo_util.print_message_content(message)
+            filter_demo_protocol.print_message_content(message)
         else:
             outgoing_data = message.encode()
             send_data(outgoing_data, receiver_addr)
@@ -61,7 +61,7 @@ def send_data(outgoing_data, receiver_addr):
 
     try:
         sock.connect(receiver_addr)
-        filter_demo_util.print_banner()
+        filter_demo_utils.print_banner()
         print("Established connection to {}:{}.".format(*receiver_addr))
 
         print("Sending message...")
@@ -78,7 +78,7 @@ def send_data(outgoing_data, receiver_addr):
 
 # ------------------------------------------------------------------------------
 def get_message_from_parsed_data(parsed_data):
-    """Create a filter_demo_msg_pb2.GPSDataMsg object, fill it with the
+    """Create a filter_demo_protocol.GPSDataMsg object, fill it with the
     parsed_data and return it.
 
     Args:
@@ -86,16 +86,17 @@ def get_message_from_parsed_data(parsed_data):
         single message.
 
     Returns:
-        filter_demo_msg_pb2.GPSDataMsg: The created and initialized
+        filter_demo_protocol.GPSDataMsg: The created and initialized
         message.
     """
-    message = filter_demo_msg_pb2.GPSDataMsg()
-    message.payload.type = int(parsed_data.get("Type"))
-    message.payload.latitude = float(parsed_data.get("Latitude"))
-    message.payload.longitude = float(parsed_data.get("Longitude"))
-    message.payload.altitude = int(parsed_data.get("Altitude"))
+    message = filter_demo_protocol.GPSDataMsg(
+        int(parsed_data.get("Type")),
+        float(parsed_data.get("Latitude")),
+        float(parsed_data.get("Longitude")),
+        int(parsed_data.get("Altitude")))
+
     message.checksum = hashlib.md5(
-        str(message.payload.SerializeToString()).encode()).hexdigest()
+        message.serialize_payload_to_byte_array()).digest()
 
     return message
 

@@ -14,8 +14,8 @@ import hashlib
 import socket
 import sys
 
-from util import filter_demo_msg_pb2
-from util import filter_demo_util
+from protocol import filter_demo_protocol
+from utils import filter_demo_utils
 
 # Default docker bridge network gateway IP
 LISTENER_ADDRESS = "172.17.0.1"
@@ -23,18 +23,20 @@ LISTENER_PORT = 6000
 
 
 # ------------------------------------------------------------------------------
-def verify_message(message):
+def verify_md5_checksum(message):
     """Calculate the checksum for the received message payload and verify it
     against the received checksum.
 
     Args:
-        message (filter_demo_msg_pb2.GPSDataMsg): GPSDataMsg to
-        verify.
+        message (filter_demo_protocol.GPSDataMsg): Message to verify.
     """
     calculatedChecksum = hashlib.md5(
-        str(message.payload.SerializeToString()).encode()).hexdigest()
+        message.serialize_payload_to_byte_array()).digest()
+
     if calculatedChecksum != message.checksum:
         print("Calculated and received checksum do not match!")
+        print("Received checksum: ", message.checksum.hex())
+        print("Calculated checksum: ", calculatedChecksum.hex())
 
 
 # ------------------------------------------------------------------------------
@@ -45,16 +47,17 @@ def process_incoming_message(received_data):
         received_data (bytes): Bytes received.
     """
     try:
-        message = filter_demo_msg_pb2.GPSDataMsg()
-        message.ParseFromString(received_data)
-    except Exception:
-        # If the Network Filter works as intended and filters out all
-        # unspecified messages, this should never be reached.
+        message = filter_demo_protocol.GPSDataMsg(
+        ).parse_message_from_byte_array(received_data)
+    except Exception as e:
+        # If the Network Filter running in the TRENTOS system works as intended
+        # and filters out all unspecified messages, this should never be
+        # reached.
         print("Unable to decode received data!")
-        filter_demo_util.print_unspecified_content(received_data)
+        filter_demo_utils.print_unspecified_content(received_data)
     else:
-        verify_message(message)
-        filter_demo_util.print_message_content(message)
+        verify_md5_checksum(message)
+        filter_demo_protocol.print_message_content(message)
 
 
 # ------------------------------------------------------------------------------
@@ -77,12 +80,12 @@ def run_listener(listener_addr):
     sock.listen(1)
 
     while True:
-        filter_demo_util.print_banner()
+        filter_demo_utils.print_banner()
         print("Waiting for a connection...")
         connection, client_address = sock.accept()
 
         try:
-            print("Connection from {}:{}".format((*client_address)))
+            print("Connection from {}:{}.".format((*client_address)))
 
             while True:
                 received_data = connection.recv(1024)
