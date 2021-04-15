@@ -38,9 +38,8 @@ def send_message_queue(message_queue, receiver_addr):
             send_data(outgoing_data, receiver_addr)
             filter_demo_protocol.print_message_content(message)
         else:
-            outgoing_data = message.encode()
-            send_data(outgoing_data, receiver_addr)
-            filter_demo_util.print_unspecified_content(message)
+            send_data(message, receiver_addr)
+            filter_demo_utils.print_unspecified_content(message)
 
         # Sleep for a few seconds to make it easier to follow the events on
         # the console.
@@ -126,7 +125,11 @@ def queue_input_data_from_file(input_data_file, message_queue):
                     except ValueError:
                         # Queue up the intentionally unspecified "garbage" data
                         # as well.
-                        message_queue.append(line)
+                        if line.startswith('0x'):
+                            # Strip '0x' from hex string.
+                            message_queue.append(bytes.fromhex(line[2:]))
+                        else:
+                            message_queue.append(line.encode())
 
     except IOError:
         print(input_data_file + ": Could not open file.")
