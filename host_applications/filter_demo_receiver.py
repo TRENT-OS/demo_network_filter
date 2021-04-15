@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+
+# ------------------------------------------------------------------------------
+# Copyright (C) 2021, HENSOLDT Cyber GmbH
+# ------------------------------------------------------------------------------
+
+'''
+Listen on a configured port for incoming messages and print the received
+contents.
+'''
+
+import argparse
+import hashlib
+import socket
+import sys
+
+from util import filter_demo_msg_pb2
+from util import filter_demo_util
+
+# Default docker bridge network gateway IP
+LISTENER_ADDRESS = "172.17.0.1"
+LISTENER_PORT = 6000
+
+
+# ------------------------------------------------------------------------------
+def verify_message(message):
+    """Calculate the checksum for the received message payload and verify it
+    against the received checksum.
+
+    Args:
+        message (filter_demo_msg_pb2.GPSDataMsg): GPSDataMsg to
+        verify.
+    """
+    calculatedChecksum = hashlib.md5(
+        str(message.payload.SerializeToString()).encode()).hexdigest()
+    if calculatedChecksum != message.checksum:
+        print("Calculated and received checksum do not match!")
+
+
+# ------------------------------------------------------------------------------
+def process_incoming_message(received_data):
+    """Parse the received message data, verify it and print its contents.
+
+    Args:
+        received_data (bytes): Bytes received.
+    """
+    try:
+        message = filter_demo_msg_pb2.GPSDataMsg()
+        message.ParseFromString(received_data)
+    except Exception:
+        # If the Network Filter works as intended and filters out all
+        # unspecified messages, this should never be reached.
+        print("Unable to decode received data!")
+        filter_demo_util.print_unspecified_content(received_data)
+    else:
+        verify_message(message)
+        filter_demo_util.print_message_content(message)
+
+
+# ------------------------------------------------------------------------------
+def run_listener(listener_addr):
+    """Start a TCP server waiting for incoming messages.
+
+    Args:
+        listener_addr (tuple): Tuple containing the IP address and port to bind
+        the listener to.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        sock.bind(listener_addr)
+    except OSError:
+        print("Failed to bind on {}:{}, address already in use.".format(
+            *listener_addr))
+        raise
+
+    sock.listen(1)
+
+    while True:
+        filter_demo_util.print_banner()
+        print("Waiting for a connection...")
+        connection, client_address = sock.accept()
+
+        try:
+            print("Connection from {}:{}".format((*client_address)))
+
+            while True:
+                received_data = connection.recv(1024)
+                if not received_data:
+                    break
+                print("Received new message from client.")
+                process_incoming_message(received_data)
+
+        finally:
+            connection.close()
+
+
+# ------------------------------------------------------------------------------
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="""Listen on a configured port for incoming messages and
+        print the received contents.""")
+    parser.add_argument('--addr', required=False,
+                        default=LISTENER_ADDRESS,
+                        help='IP address to listen on')
+    parser.add_argument('--port', required=False,
+                        default=LISTENER_PORT, type=int,
+                        help='port to listen on')
+
+    args = parser.parse_args()
+
+    listener_addr = (args.addr, args.port)
+
+    print("Starting Receiver-App on {}:{}...".format(*listener_addr))
+
+    try:
+        run_listener(listener_addr)
+
+    except KeyboardInterrupt:
+        print('Aborted manually.', file=sys.stderr)
+        return 1
+
+    except Exception as err:
+        print(err)
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

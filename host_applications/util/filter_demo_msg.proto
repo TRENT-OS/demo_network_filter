@@ -1,0 +1,21 @@
+/*
+ * Definition of the protocol format used for the GPS data message.
+ *
+ * Copyright (C) 2021, HENSOLDT Cyber GmbH
+ */
+
+syntax = "proto3";
+
+package filter_demo;
+
+message GPSDataMsg {
+  message Payload {
+    int32 type      = 1;
+    float longitude = 2;
+    float latitude  = 3;
+    int32 altitude  = 4;
+  }
+
+  Payload payload  = 1;
+  string  checksum = 2;
+}

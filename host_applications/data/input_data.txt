@@ -1,0 +1,55 @@
+# ------------------------------------------------------------------------------
+# Contains the valid and invalid data that should be transferred from the Sender
+# to the Receiver. All intentionally added malformed messages should be
+# caught by the Network Filter component.
+#
+# Copyright (C) 2021, HENSOLDT Cyber GmbH
+# ------------------------------------------------------------------------------
+
+# Messages containing GPS-Data are encoded with type 23.
+Type: 23, Latitude: 47.59760, Longitude: 9.59707, Altitude: 413
+
+# Unspecified random data. Should get caught by the filter.
+jcIP0LCesok8CAoAqdanYeBPzEA2P7c1L6KhSxSbSa8gTqgCszDnIoGNrdUoOQyo9NCQjYUGvDad7ilA
+
+# Valid messages.
+Type: 23, Latitude: -14.46219, Longitude: -69.46332, Altitude: 76
+Type: 23, Latitude: 48.21881, Longitude: 11.62477, Altitude: 492
+
+# Invalid message below contains an unsupported type and should get caught by
+# the filter.
+Type: 25, Latitude: 48.86471, Longitude: 2.34901, Altitude: 35
+
+# Valid messages.
+Type: 23, Latitude: 6.92707, Longitude: 79.86124, Altitude: 1
+Type: 23, Latitude: 1.29027, Longitude: 103.85195, Altitude: 15
+Type: 23, Latitude: 29.5630, Longitude: 106.55155, Altitude: 244
+
+# Invalid message below contains an invalid latitude (valid only ±90).
+# Should get caught by the filter.
+Type: 23, Latitude: 110.11735, Longitude: -161.09716, Altitude: 368
+
+# Unspecified random data. Should get caught by the filter.
+Fwmuu5ORXo2mSrGIjE7ETrSw7U5BLvO77xsn88IcXkUNC6oE0MbgrvOHHmttymVMqRLlqAvhHPSP1vf5
+
+# Valid messages.
+Type: 23, Latitude: 36.50538, Longitude: -117.07940, Altitude: -72
+Type: 23, Latitude: -15.83325, Longitude: 58.25571, Altitude: 288
+
+# Invalid message below contains an invalid longitude (valid only ±180).
+# Should get caught by the filter.
+Type: 23, Latitude: -14.46219, Longitude: -300.46332, Altitude: 474
+
+# Unspecified random data. Should get caught by the filter.
+OT7LFDF2Lshzd7fqUeBQe66Hg74Kw53LS3D9j1B1ofQgFAXIBiMcQsgH4Du8B3F1l2MEovgIhshLcqYJ
+
+# Valid messages.
+Type: 23, Latitude: 34.66952, Longitude: 135.49700, Altitude: 83
+Type: 23, Latitude: 35.65283, Longitude: 139.83947, Altitude: 40
+
+# Unspecified random data. Should get caught by the filter.
+Igd8ZDyHC08XrmfmE2dw3dPPrKjgal6fnSEcrPQ2Dk6wb4dW4g2TqcninfHv1xTaAruamhyhM76Ms8k7
+
+# Valid messages.
+Type: 23, Latitude: 52.52000, Longitude: 13.40495, Altitude: 34
+Type: 23, Latitude: 27.98805, Longitude: 86.92527, Altitude: 8849
