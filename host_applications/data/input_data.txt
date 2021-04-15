@@ -22,8 +22,8 @@ Type: 23, Latitude: 48.21881, Longitude: 11.62477, Altitude: 492
 # Type: 23 Latitude: 19.07609, Longitude: 72.87742, Altitude: 14
 0x0000001741989bd54291c13d0000000ee156c35f50a7337b600ea72941d1bd12
 
-# Invalid message below contains an unsupported type and should get caught by
-# the filter.
+# Invalid message below contains an unsupported type. Should get caught by the
+# filter.
 Type: 25, Latitude: 48.86471, Longitude: 2.34901, Altitude: 35
 
 # Valid messages.
