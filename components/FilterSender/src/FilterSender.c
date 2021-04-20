@@ -6,6 +6,7 @@
 
 #include "system_config.h"
 
+#include "lib_compiler/compiler.h"
 #include "lib_debug/Debug.h"
 #include <camkes.h>
 #include <string.h>
@@ -72,11 +73,13 @@ run(void)
     {
         char request[26];
 
-        int lenNeeded = snprintf(request, sizeof(request),
-                                 "Client Hello Message #%u\n",
-                                 (i + 1));
+        DECL_UNUSED_VAR(int lenNeeded) = snprintf(
+                                             request,
+                                             sizeof(request),
+                                             "Client Hello Message #%u\n",
+                                             (i + 1));
 
-        assert((lenNeeded > 0) && (lenNeeded < sizeof(request)));
+        Debug_ASSERT((lenNeeded > 0) && (lenNeeded < sizeof(request)));
 
         const size_t lenRequest = strlen(request);
         size_t sumLenWritten = 0;
