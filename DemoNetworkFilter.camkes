@@ -100,7 +100,7 @@ assembly {
             to   nwStack2.socket_2_port);
 
         //----------------------------------------------------------------------
-        // Filter Client
+        // Filter Sender
         //----------------------------------------------------------------------
         component FilterSender filterSender;
 
