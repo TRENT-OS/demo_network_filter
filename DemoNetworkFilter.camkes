@@ -1,0 +1,111 @@
+/*
+ * Main CAmkES file of the Network Filter Demo
+ *
+ * Copyright (C) 2021, HENSOLDT Cyber GmbH
+ */
+
+import <std_connector.camkes>;
+
+#include "system_config.h"
+
+import "components/Ticker/Ticker.camkes";
+import "components/FilterListener/FilterListener.camkes";
+import "components/FilterSender/FilterSender.camkes";
+import "components/NwStack/NwStack.camkes";
+
+#include "TimeServer/camkes/TimeServer.camkes"
+TimeServer_COMPONENT_DEFINE(TimeServer)
+
+// Include the platform specific components and macros.
+#include "plat_nic.camkes"
+
+assembly {
+    composition {
+
+        //----------------------------------------------------------------------
+        // NIC Drivers
+        //----------------------------------------------------------------------
+        FILTER_DEMO_NIC_INSTANCES(nwDriver1, nwDriver2)
+
+        //----------------------------------------------------------------------
+        // TimeServer
+        //----------------------------------------------------------------------
+        component TimeServer timeServer;
+
+        TimeServer_INSTANCE_CONNECT_CLIENTS(
+            timeServer,
+            ticker.timeServer_rpc,   ticker.timeServer_notify,
+            nwStack1.timeServer_rpc, nwStack1.timeServer_notify,
+            nwStack2.timeServer_rpc, nwStack2.timeServer_notify
+        )
+
+        //----------------------------------------------------------------------
+        // Ticker
+        //----------------------------------------------------------------------
+        component Ticker ticker;
+
+        connection seL4NotificationNative ticker_nwStack1_tick(
+            from ticker.e_timeout_nwstacktick1,
+            to nwStack1.event_tick_or_data);
+
+        connection seL4NotificationNative ticker_nwStack2_tick(
+            from ticker.e_timeout_nwstacktick2,
+            to nwStack2.event_tick_or_data);
+
+        //----------------------------------------------------------------------
+        // NwStack #1
+        //----------------------------------------------------------------------
+        component NwStack1 nwStack1;
+
+        FILTER_DEMO_NIC_CONNECT(nwDriver1, nwStack1)
+
+        //----------------------------------------------------------------------
+        // NwStack #2
+        //----------------------------------------------------------------------
+        component NwStack2 nwStack2;
+
+        FILTER_DEMO_NIC_CONNECT(nwDriver2, nwStack2)
+
+        //----------------------------------------------------------------------
+        // Filter Listener
+        //----------------------------------------------------------------------
+        component FilterListener filterListener;
+
+        connection seL4RPCCall filterListener_nwStack2_rpc(
+            from filterListener.networkStack_rpc,
+            to   nwStack2.networkStack_rpc);
+
+        // Since the Listener will handle incoming connections, it requires a
+        // minimum of two sockets.
+        connection seL4SharedData filterListener_nwStack2_1_port(
+            from filterListener.socket_1_port,
+            to   nwStack2.socket_1_port);
+
+        connection seL4SharedData filterListener_nwStack2_2_port(
+            from filterListener.socket_2_port,
+            to   nwStack2.socket_2_port);
+
+        //----------------------------------------------------------------------
+        // Filter Client
+        //----------------------------------------------------------------------
+        component FilterSender filterSender;
+
+        connection seL4RPCCall filterSender_nwStack1_rpc(
+            from filterSender.networkStack_rpc,
+            to   nwStack1.networkStack_rpc);
+
+        connection seL4SharedData filterSender_nwStack1_1_port(
+            from filterSender.socket_1_port,
+            to   nwStack1.socket_1_port);
+
+    }
+    configuration {
+        TimeServer_CLIENT_ASSIGN_BADGES(
+            ticker.timeServer_rpc,
+            nwStack1.timeServer_rpc,
+            nwStack2.timeServer_rpc
+        )
+        // Platform specific configuration.
+        FILTER_DEMO_NIC_CONFIG(nwDriver1, nwDriver2)
+    }
+}
