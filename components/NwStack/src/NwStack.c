@@ -62,29 +62,36 @@ post_init(void)
     socks[OS_NETWORK_MAXIMUM_SOCKET_NO] =
     {
         {
-            .notify_write      = e_write0_emit,
-            .wait_write        = c_write0_wait,
+            .notify_write      = e_write_1_emit,
+            .wait_write        = c_write_1_wait,
 
-            .notify_read       = e_read0_emit,
-            .wait_read         = c_read0_wait,
+            .notify_read       = e_read_1_emit,
+            .wait_read         = c_read_1_wait,
 
-            .notify_connection = e_conn0_emit,
-            .wait_connection   = c_conn0_wait,
+            .notify_connection = e_conn_1_emit,
+            .wait_connection   = c_conn_1_wait,
 
             .buf               = OS_DATAPORT_ASSIGN(socket_1_port),
-        },
+        }
+#if OS_NETWORK_MAXIMUM_SOCKET_NO > 1
+        ,
         {
-            .notify_write      = e_write1_emit,
-            .wait_write        = c_write1_wait,
+            .notify_write      = e_write_2_emit,
+            .wait_write        = c_write_2_wait,
 
-            .notify_read       = e_read1_emit,
-            .wait_read         = c_read1_wait,
+            .notify_read       = e_read_2_emit,
+            .wait_read         = c_read_2_wait,
 
-            .notify_connection = e_conn1_emit,
-            .wait_connection   = c_conn1_wait,
+            .notify_connection = e_conn_2_emit,
+            .wait_connection   = c_conn_2_wait,
 
             .buf               = OS_DATAPORT_ASSIGN(socket_2_port),
         }
+#endif
+
+#if OS_NETWORK_MAXIMUM_SOCKET_NO > 2
+#   error please provide the missing assignments according to what is defined in system_config.h and camkes!
+#endif
     };
 
     static const OS_NetworkStack_CamkesConfig_t camkes_config =
@@ -117,11 +124,11 @@ post_init(void)
             // NIC -> Stack
             .from =
             {
-                .io = (void**)( &(nic_port_from)),
+                .io = (void**)( &(nic_from_port)),
                 .size = NIC_DRIVER_RINGBUFFER_NUMBER_ELEMENTS
             },
             // Stack -> NIC
-            .to = OS_DATAPORT_ASSIGN(nic_port_to),
+            .to = OS_DATAPORT_ASSIGN(nic_to_port),
             .rpc =
             {
                 .dev_read       = nic_rpc_rx_data,

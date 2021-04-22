@@ -11,7 +11,8 @@ import <std_connector.camkes>;
 import "components/Ticker/Ticker.camkes";
 import "components/FilterListener/FilterListener.camkes";
 import "components/FilterSender/FilterSender.camkes";
-import "components/NwStack/NwStack.camkes";
+
+#include "components/NwStack/NwStack.camkes";
 
 #include "TimeServer/camkes/TimeServer.camkes"
 TimeServer_COMPONENT_DEFINE(TimeServer)
@@ -44,27 +45,27 @@ assembly {
         //----------------------------------------------------------------------
         component Ticker ticker;
 
-        connection seL4NotificationNative ticker_nwStack1_tick(
-            from ticker.e_timeout_nwstacktick1,
-            to nwStack1.event_tick_or_data);
-
-        connection seL4NotificationNative ticker_nwStack2_tick(
-            from ticker.e_timeout_nwstacktick2,
-            to nwStack2.event_tick_or_data);
-
         //----------------------------------------------------------------------
         // NwStack #1
         //----------------------------------------------------------------------
         component NwStack1 nwStack1;
 
-        FILTER_DEMO_NIC_CONNECT(nwDriver1, nwStack1)
+        NwStack_INSTANCE_CONNECT(
+            nwStack1,
+            ticker.e_timeout_nwstacktick1,
+            nwDriver1
+        )
 
         //----------------------------------------------------------------------
         // NwStack #2
         //----------------------------------------------------------------------
         component NwStack2 nwStack2;
 
-        FILTER_DEMO_NIC_CONNECT(nwDriver2, nwStack2)
+        NwStack_INSTANCE_CONNECT(
+            nwStack2,
+            ticker.e_timeout_nwstacktick2,
+            nwDriver2
+        )
 
         //----------------------------------------------------------------------
         // Filter Listener

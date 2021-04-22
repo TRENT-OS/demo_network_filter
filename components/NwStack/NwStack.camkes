@@ -8,103 +8,21 @@ import <if_OS_Nic.camkes>;
 import <if_OS_Socket.camkes>;
 import <if_OS_Timer.camkes>;
 
+#include "os_network_stack/network_stack.camkes"
+
 #include "system_config.h"
 
-#define FILTER_DEMO_NwStack_COMPONENT_DEFINE(_name_, _nic_port_size_) \
-    \
-    component _name_ \
-    { \
-        control; \
-        \
-        /* Periodic event tick from Ticker component. */ \
-        consumes EventDataAvailable event_tick_or_data; \
-        \
-        /* Internal event used to notify the main network stack loop about */ \
-        /* a write event. */ \
-        emits    EventDataAvailable event_internal; \
-        \
-        /* Internal events required for the socket. */ \
-        emits    NwStack_WrEv   e_write0; \
-        consumes NwStack_WrEv   c_write0; \
-        emits    NwStack_RdEv   e_read0; \
-        consumes NwStack_RdEv   c_read0; \
-        emits    NwStack_ConnEv e_conn0; \
-        consumes NwStack_ConnEv c_conn0; \
-        \
-        emits    NwStack_WrEv e_write1; \
-        consumes NwStack_WrEv c_write1; \
-        emits    NwStack_RdEv e_read1; \
-        consumes NwStack_RdEv c_read1; \
-        emits    NwStack_ConnEv e_conn1; \
-        consumes NwStack_ConnEv c_conn1; \
-        \
-        /* Mutexes required by picoTCP. There is a hard-dependency here in */ \
-        /* the library on the names set here. Therefore they need to be */ \
-        /* kept exactly as shown here. */ \
-        has mutex allocatorMutex; \
-        has mutex nwstackMutex; \
-        \
-        /* Mutexes required to protect ressources shared by the interface */ \
-        /* and the main run() thread. */ \
-        has mutex socketControlBlockMutex; \
-        has mutex stackThreadSafeMutex; \
-        \
-        /*------------------------------------------------------------------*/ \
-        /* interface TimeServer */ \
-        uses     if_OS_Timer timeServer_rpc; \
-        consumes TimerReady  timeServer_notify; \
-        \
-        /*------------------------------------------------------------------*/ \
-        /* interface NIC driver */ \
-        uses      if_OS_Nic             nic_rpc; \
-        dataport  Buf(_nic_port_size_)  nic_port_from; /* NIC -> stack */ \
-        dataport  Buf                   nic_port_to;   /* stack -> NIC */ \
-        \
-        /*------------------------------------------------------------------*/ \
-        /* interface to application */ \
-        provides if_OS_Socket networkStack_rpc; \
-        \
-        /* Each socket requires a separate shared dataport. */ \
-        dataport Buf          socket_1_port; \
-        /* The second port will only be used by the NwStack connected to */ \
-        /* the FilterListener. Server components require a minimum of two */ \
-        /* sockets */ \
-        maybe dataport Buf    socket_2_port; \
-        \
-        composition { \
-            /* Connect the internal event generally used to notify the main */ \
-            /* network stack loop about a write event. */ \
-            connection seL4NotificationNative NwStack_dataAvail( \
-                from event_internal, \
-                to   event_tick_or_data); \
-            \
-            /* Connect the internally used events for the socket. */ \
-            connection seL4Notification NwStack_a0( \
-                from e_write0, \
-                to c_write0); \
-            connection seL4Notification NwStack_b0( \
-                from e_read0, \
-                to c_read0); \
-            connection seL4Notification NwStack_c0( \
-                from e_conn0, \
-                to c_conn0); \
-            connection seL4Notification NwStack_a1( \
-                from e_write1, \
-                to c_write1); \
-            connection seL4Notification NwStack_b1( \
-                from e_read1, \
-                to c_read1); \
-            connection seL4Notification NwStack_c1( \
-                from e_conn1, \
-                to c_conn1); \
-        } \
-    }
+// no additional interfaces for the network stacks, define it null
+#define NwStack_INTERFACES
 
-
-FILTER_DEMO_NwStack_COMPONENT_DEFINE(
+NwStack_COMPONENT_DEFINE(
     NwStack1,
-    NIC_DRIVER_RINGBUFFER_SIZE)
+    NIC_DRIVER_RINGBUFFER_SIZE,
+    NETWORK_STACK_1_NUM_SOCKETS,
+    NwStack_INTERFACES)
 
-FILTER_DEMO_NwStack_COMPONENT_DEFINE(
+NwStack_COMPONENT_DEFINE(
     NwStack2,
-    NIC_DRIVER_RINGBUFFER_SIZE)
+    NIC_DRIVER_RINGBUFFER_SIZE,
+    NETWORK_STACK_2_NUM_SOCKETS,
+    NwStack_INTERFACES)

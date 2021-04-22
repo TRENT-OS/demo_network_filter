@@ -16,13 +16,6 @@
 #include "OS_NetworkStackClient.h"
 
 //------------------------------------------------------------------------------
-#define FILTER_SENDER_SOCKET_NO 1
-
-#if FILTER_SENDER_SOCKET_NO > OS_NETWORK_MAXIMUM_SOCKET_NO
-#error "Number of defined sockets exceeds maximum available sockets!"
-#endif
-
-//------------------------------------------------------------------------------
 static void
 init_network_client_api(void)
 {
