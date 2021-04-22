@@ -58,8 +58,7 @@ post_init(void)
 {
     Debug_LOG_INFO("[NwStack '%s'] starting", get_instance_name());
 
-    static OS_NetworkStack_SocketResources_t
-    socks[OS_NETWORK_MAXIMUM_SOCKET_NO] =
+    static OS_NetworkStack_SocketResources_t socks[NUM_SOCKETS] =
     {
         {
             .notify_write      = e_write_1_emit,
@@ -73,7 +72,7 @@ post_init(void)
 
             .buf               = OS_DATAPORT_ASSIGN(socket_1_port),
         }
-#if OS_NETWORK_MAXIMUM_SOCKET_NO > 1
+#if NUM_SOCKETS > 1
         ,
         {
             .notify_write      = e_write_2_emit,
@@ -87,16 +86,16 @@ post_init(void)
 
             .buf               = OS_DATAPORT_ASSIGN(socket_2_port),
         }
+#if NUM_SOCKETS > 2
+#error up to 2 sockets are supported
+#endif
 #endif
 
-#if OS_NETWORK_MAXIMUM_SOCKET_NO > 2
-#   error please provide the missing assignments according to what is defined in system_config.h and camkes!
-#endif
     };
 
     static const OS_NetworkStack_CamkesConfig_t camkes_config =
     {
-        .wait_loop_event         = event_tick_or_data_wait,
+        .wait_loop_event        = event_tick_or_data_wait,
 
         .internal =
         {
@@ -114,7 +113,7 @@ post_init(void)
             .stackTS_lock       = stackThreadSafeMutex_lock,
             .stackTS_unlock     = stackThreadSafeMutex_unlock,
 
-            .number_of_sockets  = OS_NETWORK_MAXIMUM_SOCKET_NO,
+            .number_of_sockets  = NUM_SOCKETS,
 
             .sockets            = socks
         },

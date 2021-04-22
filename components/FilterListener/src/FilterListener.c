@@ -17,17 +17,16 @@
 static void
 init_network_client_api(void)
 {
-    static OS_NetworkStackClient_SocketDataports_t config;
-
-    config.number_of_sockets = FILTER_LISTENER_SOCKET_NO;
-
-    static OS_Dataport_t dataports[FILTER_LISTENER_SOCKET_NO] =
-    {
+    static OS_Dataport_t dataports[FILTER_LISTENER_NUM_SOCKETS] = {
         OS_DATAPORT_ASSIGN(socket_1_port),
         OS_DATAPORT_ASSIGN(socket_2_port)
     };
 
-    config.dataport = dataports;
+    static OS_NetworkStackClient_SocketDataports_t config = {
+        .number_of_sockets = ARRAY_SIZE(dataports),
+        .dataport = dataports
+    };
+
     OS_NetworkStackClient_init(&config);
 }
 

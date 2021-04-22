@@ -19,13 +19,14 @@
 static void
 init_network_client_api(void)
 {
-    static OS_NetworkStackClient_SocketDataports_t config;
+    static OS_Dataport_t dataports[FILTER_SENDER_NUM_SOCKETS] = {
+        OS_DATAPORT_ASSIGN(socket_1_port)
+    };
 
-    config.number_of_sockets = FILTER_SENDER_SOCKET_NO;
-
-    static OS_Dataport_t dataport = OS_DATAPORT_ASSIGN(socket_1_port);
-
-    config.dataport = &dataport;
+    static OS_NetworkStackClient_SocketDataports_t config = {
+        .number_of_sockets = ARRAY_SIZE(dataports),
+        .dataport = dataports
+    };
 
     OS_NetworkStackClient_init(&config);
 }

@@ -12,7 +12,20 @@ import "components/Ticker/Ticker.camkes";
 import "components/FilterListener/FilterListener.camkes";
 import "components/FilterSender/FilterSender.camkes";
 
-#include "components/NwStack/NwStack.camkes";
+#include "os_network_stack/network_stack.camkes"
+
+NwStack_COMPONENT_DEFINE(
+    NwStack1,
+    NIC_DRIVER_RINGBUFFER_SIZE,
+    NETWORK_STACK_1_NUM_SOCKETS,
+    NwStack_NO_ADDITIONAL_INTERFACES)
+
+NwStack_COMPONENT_DEFINE(
+    NwStack2,
+    NIC_DRIVER_RINGBUFFER_SIZE,
+    NETWORK_STACK_2_NUM_SOCKETS,
+    NwStack_NO_ADDITIONAL_INTERFACES)
+
 
 #include "TimeServer/camkes/TimeServer.camkes"
 TimeServer_COMPONENT_DEFINE(TimeServer)
