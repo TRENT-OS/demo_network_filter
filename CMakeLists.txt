@@ -42,7 +42,6 @@ DeclareCAmkESComponent(
     LIBS
         system_config
         os_core_api
-        lib_compiler
         lib_debug
         os_network_api
 )

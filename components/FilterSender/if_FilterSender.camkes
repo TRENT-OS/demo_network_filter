@@ -1,0 +1,14 @@
+/*
+ * Filter Sender Interface
+ *
+ * Copyright (C) 2021, HENSOLDT Cyber GmbH
+ */
+
+procedure if_FilterSender {
+    include "OS_Error.h";
+
+    OS_Error_t
+    forwardRecvData(
+        in    size_t len,
+        out   size_t forwardedLen);
+};

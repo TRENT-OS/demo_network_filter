@@ -4,6 +4,8 @@
  * Copyright (C) 2021, HENSOLDT Cyber GmbH
  */
 
+import "../FilterSender/if_FilterSender.camkes";
+
 import <if_OS_Socket.camkes>;
 
 component FilterListener {
@@ -17,4 +19,9 @@ component FilterListener {
     // minimum of two sockets = two dataports.
     dataport Buf socket_1_port;
     dataport Buf socket_2_port;
+
+    //-------------------------------------------------
+    // FilterSender
+    uses     if_FilterSender filterSender_rpc;
+    dataport Buf             filterSender_port;
 }

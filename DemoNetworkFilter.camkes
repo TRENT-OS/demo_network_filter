@@ -99,6 +99,16 @@ assembly {
             from filterListener.socket_2_port,
             to   nwStack2.socket_2_port);
 
+        // Connect the FilterListener to the FilterSender to forward the
+        // received valid messages.
+        connection seL4RPCCall filterListener_filterSender_rpc(
+            from filterListener.filterSender_rpc,
+            to   filterSender.filterSender_rpc);
+
+        connection seL4SharedData filterListener_filterSender_port(
+            from filterListener.filterSender_port,
+            to filterSender.filterSender_port);
+
         //----------------------------------------------------------------------
         // Filter Sender
         //----------------------------------------------------------------------

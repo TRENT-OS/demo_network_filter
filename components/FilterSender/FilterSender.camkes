@@ -4,10 +4,14 @@
  * Copyright (C) 2021, HENSOLDT Cyber GmbH
  */
 
+import "if_FilterSender.camkes";
+
 import <if_OS_Socket.camkes>;
 
 component FilterSender {
-    control;
+
+    provides if_FilterSender filterSender_rpc;
+    dataport Buf             filterSender_port;
 
     //--------------------------------------------------------------------------
     // Networking
