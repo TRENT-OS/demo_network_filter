@@ -87,19 +87,19 @@ assembly {
         //----------------------------------------------------------------------
         component FilterListener filterListener;
 
-        connection seL4RPCCall filterListener_nwStack2_rpc(
+        connection seL4RPCCall filterListener_nwStack1_rpc(
             from filterListener.networkStack_rpc,
-            to   nwStack2.networkStack_rpc);
+            to   nwStack1.networkStack_rpc);
 
         // Since the Listener will handle incoming connections, it requires a
         // minimum of two sockets.
-        connection seL4SharedData filterListener_nwStack2_1_port(
+        connection seL4SharedData filterListener_nwStack1_1_port(
             from filterListener.socket_1_port,
-            to   nwStack2.socket_1_port);
+            to   nwStack1.socket_1_port);
 
-        connection seL4SharedData filterListener_nwStack2_2_port(
+        connection seL4SharedData filterListener_nwStack1_2_port(
             from filterListener.socket_2_port,
-            to   nwStack2.socket_2_port);
+            to   nwStack1.socket_2_port);
 
         // Connect the FilterListener to the FilterSender to forward the
         // received valid messages.
@@ -126,13 +126,13 @@ assembly {
         //----------------------------------------------------------------------
         component FilterSender filterSender;
 
-        connection seL4RPCCall filterSender_nwStack1_rpc(
+        connection seL4RPCCall filterSender_nwStack2_rpc(
             from filterSender.networkStack_rpc,
-            to   nwStack1.networkStack_rpc);
+            to   nwStack2.networkStack_rpc);
 
-        connection seL4SharedData filterSender_nwStack1_1_port(
+        connection seL4SharedData filterSender_nwStack2_1_port(
             from filterSender.socket_1_port,
-            to   nwStack1.socket_1_port);
+            to   nwStack2.socket_1_port);
 
     }
     configuration {

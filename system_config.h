@@ -72,8 +72,8 @@
 //-----------------------------------------------------------------------------
 // Network Stack 1
 //-----------------------------------------------------------------------------
-#define NETWORK_STACK_1_NUM_SOCKETS     FILTER_SENDER_NUM_SOCKETS
-#define ETH_1_ADDR                      "10.0.0.11"
+#define NETWORK_STACK_1_NUM_SOCKETS     FILTER_LISTENER_NUM_SOCKETS
+#define ETH_1_ADDR                      "10.0.0.10"
 #define ETH_1_GATEWAY_ADDR              "10.0.0.1"
 #define ETH_1_SUBNET_MASK               "255.255.255.0"
 
@@ -81,8 +81,8 @@
 //-----------------------------------------------------------------------------
 // Network Stack 2
 //-----------------------------------------------------------------------------
-#define NETWORK_STACK_2_NUM_SOCKETS     FILTER_LISTENER_NUM_SOCKETS
-#define ETH_2_ADDR                      "10.0.0.10"
+#define NETWORK_STACK_2_NUM_SOCKETS     FILTER_SENDER_NUM_SOCKETS
+#define ETH_2_ADDR                      "10.0.0.11"
 #define ETH_2_GATEWAY_ADDR              "10.0.0.1"
 #define ETH_2_SUBNET_MASK               "255.255.255.0"
 
