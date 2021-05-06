@@ -22,14 +22,18 @@ include("plat/${PLATFORM}/plat_nic.cmake")
 
 DeclareCAmkESComponent(
     FilterListener
+    INCLUDES
+        protocol
     SOURCES
         components/FilterListener/src/FilterListener.c
+        protocol/MessageProtocol.c
     C_FLAGS
         -Wall -Werror
     LIBS
         system_config
         os_core_api
         lib_debug
+        os_crypto
         os_network_api
 )
 
@@ -98,6 +102,10 @@ DeclareCAmkESComponent(
 
 TimeServer_DeclareCAmkESComponent(
     TimeServer
+)
+
+EntropySource_DeclareCAmkESComponent(
+    EntropySource
 )
 
 DeclareAndCreateCamkESSystem(DemoNetworkFilter.camkes)

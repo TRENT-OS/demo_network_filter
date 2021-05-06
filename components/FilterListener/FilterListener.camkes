@@ -6,10 +6,16 @@
 
 import "../FilterSender/if_FilterSender.camkes";
 
+import <if_OS_Entropy.camkes>;
 import <if_OS_Socket.camkes>;
 
 component FilterListener {
     control;
+
+    //--------------------------------------------------------------------------
+    // EntropySource
+    uses     if_OS_Entropy entropy_rpc;
+    dataport Buf           entropy_port;
 
     //--------------------------------------------------------------------------
     // Networking

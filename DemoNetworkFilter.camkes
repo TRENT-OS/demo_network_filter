@@ -26,6 +26,8 @@ NwStack_COMPONENT_DEFINE(
     NETWORK_STACK_2_NUM_SOCKETS,
     NwStack_NO_ADDITIONAL_INTERFACES)
 
+#include "EntropySource/camkes/EntropySource.camkes"
+EntropySource_COMPONENT_DEFINE(EntropySource)
 
 #include "TimeServer/camkes/TimeServer.camkes"
 TimeServer_COMPONENT_DEFINE(TimeServer)
@@ -108,6 +110,16 @@ assembly {
         connection seL4SharedData filterListener_filterSender_port(
             from filterListener.filterSender_port,
             to filterSender.filterSender_port);
+
+        //----------------------------------------------------------------------
+        // EntropySource
+        //----------------------------------------------------------------------
+        component EntropySource entropySource;
+
+        EntropySource_INSTANCE_CONNECT_CLIENT(
+            entropySource,
+            filterListener.entropy_rpc,
+            filterListener.entropy_port)
 
         //----------------------------------------------------------------------
         // Filter Sender
