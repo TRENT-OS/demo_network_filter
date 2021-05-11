@@ -14,11 +14,11 @@ import struct
 # The binary protocol this module provides is outlined in the table below.
 # All bytes are sorted according to the network byte order (= big-endian).
 
-# | Content | MessageType | Latitude | Longitude | Altitude | MD5 Checksum |
-# |---------|-------------|----------|-----------|----------|--------------|
-# |   Type  |     Int     |   Float  |   Float   |    Int   |     Char     |
-# |   Byte  |     0-3     |    4-7   |    8-11   |   12-15  |     16-31    |
-GPS_PAYLOAD_FMT = '!iffi'
+# | Content | MessageType  | Latitude | Longitude | Altitude | MD5 Checksum |
+# |---------|--------------|----------|-----------|----------|--------------|
+# |   Type  | Unsigned Int |   Float  |   Float   |    Int   |     Char     |
+# |   Byte  |      0-3     |    4-7   |    8-11   |   12-15  |     16-31    |
+GPS_PAYLOAD_FMT = '!Iffi'
 GPS_MD5_HASH_FMT = '16s'
 GPS_FULL_MSG_FMT = GPS_PAYLOAD_FMT + GPS_MD5_HASH_FMT
 

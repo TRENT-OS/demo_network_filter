@@ -17,10 +17,10 @@
 // The binary protocol this module provides is outlined in the table below.
 // All bytes are sorted according to the network byte order (= big-endian).
 
-// | Content | MessageType | Latitude | Longitude | Altitude | MD5 Checksum |
-// |---------|-------------|----------|-----------|----------|--------------|
-// |   Type  |     Int     |   Float  |   Float   |    Int   |     Char     |
-// |   Byte  |     0-3     |    4-7   |    8-11   |   12-15  |     16-31    |
+// | Content | MessageType  | Latitude | Longitude | Altitude | MD5 Checksum |
+// |---------|--------------|----------|-----------|----------|--------------|
+// |   Type  | Unsigned Int |   Float  |   Float   |    Int   |     Char     |
+// |   Byte  |      0-3     |    4-7   |    8-11   |   12-15  |     16-31    |
 #define CHECKSUM_ALG    OS_CryptoDigest_ALG_MD5
 #define CHECKSUM_LENGTH OS_CryptoDigest_SIZE_MD5
 
@@ -30,7 +30,7 @@
 
 typedef struct __attribute__ ((__packed__))
 {
-    int32_t messageType;
+    uint32_t messageType;
     float latitude;
     float longitude;
     int32_t altitude;

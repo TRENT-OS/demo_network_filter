@@ -124,7 +124,7 @@ isRecvDataValid(
 
     if (!MessageProtocol_isMsgTypeValid(&message))
     {
-        Debug_LOG_INFO("Unsupported message type: %d",
+        Debug_LOG_INFO("Unsupported message type: %u",
                        message.messageType);
         return false;
     }

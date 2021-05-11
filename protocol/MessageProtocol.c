@@ -54,7 +54,7 @@ MessageProtocol_printMsgContent(
     }
 
     Debug_LOG_INFO("Message Content:");
-    Debug_LOG_INFO("Type %d", message->messageType);
+    Debug_LOG_INFO("Type %u", message->messageType);
     Debug_LOG_INFO("Latitude %.5f°", message->latitude);
     Debug_LOG_INFO("Longitude %.5f°", message->longitude);
     Debug_LOG_INFO("Altitude %d m", message->altitude);
