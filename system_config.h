@@ -58,7 +58,7 @@
 // Filter Sender
 //-----------------------------------------------------------------------------
 #define FILTER_SENDER_NUM_SOCKETS       1
-#define FILTER_SENDER_IP_ADDR           "172.17.0.1"
+#define FILTER_SENDER_IP_ADDR           "10.0.0.1"
 #define FILTER_SENDER_PORT              6000
 
 

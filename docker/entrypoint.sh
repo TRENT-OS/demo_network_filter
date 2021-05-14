@@ -40,5 +40,9 @@ sudo iptables -A FORWARD -i ${BRIDGE_NAME} -j ACCEPT
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 5560 -j DNAT  --to 10.0.0.10:5560
 sudo iptables -t nat -A PREROUTING -i eth0 -p udp --dport 5560 -j DNAT  --to 10.0.0.10:5560
 
+# forward packets to the internal bridge through NAT to the docker bridge
+sudo iptables -t nat -A PREROUTING -i br0 -p tcp --dport 6000 -j DNAT  --to 172.17.0.1:6000
+sudo iptables -t nat -A PREROUTING -i br0 -p udp --dport 6000 -j DNAT  --to 172.17.0.1:6000
+
 # execute the command that was passed to docker run
 exec "$@"
