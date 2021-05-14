@@ -1,0 +1,16 @@
+/*
+ * Nitrogen6_SoloX configuration
+ *
+ * Copyright (C) 2021, HENSOLDT Cyber GmbH
+ */
+
+#pragma once
+
+#include "NIC_iMX6/NIC_iMX6.camkes"
+
+#define FILTER_DEMO_NIC_INSTANCES(_nic1_, _nic2_) \
+    NIC_IMX6_INSTANCE(_nic1_, _nic2_)
+
+#define FILTER_DEMO_NIC_CONFIG(_nic1_, _nic2_) \
+    NIC_IMX6_MEMORY_CONFIG(_nic1_) \
+    NIC_IMX6_MEMORY_CONFIG(_nic2_)
