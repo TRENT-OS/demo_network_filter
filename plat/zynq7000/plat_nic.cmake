@@ -4,7 +4,7 @@
 # Copyright (C) 2021, HENSOLDT Cyber GmbH
 #
 
-cmake_minimum_required(VERSION 3.17.3)
+cmake_minimum_required(VERSION 3.17)
 
 ChanMux_UART_DeclareCAmkESComponents(
     ChanMux_UART
