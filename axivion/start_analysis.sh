@@ -101,15 +101,21 @@ fi
 # Do analysis
 #-------------------------------------------------------------------------------
 
-# TODO: clean
+# do "clean before" for the first component build
+export AXIVION_CLEAN_BEFORE=true
 
 for COMP_NAME in "${!COMPONENTS[@]}"; do
 
+    # set environment variables for component
     export BUILD_TARGET=${COMPONENTS[${COMP_NAME}]}
     export AXIVION_PROJECTNAME=${PROJECTNAME}_${COMP_NAME}
     export AXIVION_OUTFILE=${BUILD_DIR}/os_system/${BUILD_TARGET}
 
+    # run axivion
     axivion_ci -j
+
+    # skip "clean before" after the first component build
+    export AXIVION_CLEAN_BEFORE=false
 
 done
 
