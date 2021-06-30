@@ -1,0 +1,42 @@
+{
+    "Analysis": {
+        "Analysis-GlobalOptions": {
+            "global_excludes": [
+                "/home/user/build_analysis/*",
+                "seos_sandbox/sdk-sel4-camkes/*",
+                "*/3rdParty/*"
+            ]
+        }
+    },
+    "Project": {
+        "BuildSystemIntegration": {
+            "child_order": [
+                "AxivionCompiler",
+                "AxivionLinker",
+                "Command"
+            ]
+        },
+        "Command": {
+            "_active": true,
+            "build_command": "$(BAUHAUS_CONFIG)/build.sh",
+            "clean_command": "$(BAUHAUS_CONFIG)/clean.sh"
+        },
+        "Git": {
+            "_active": true,
+            "sourceserver_gitdir": "$(AXIVION_SOURCESERVER_GITDIR)"
+        },
+        "Project-GlobalOptions": {
+            "directory": "$(AXIVION_PROJECT_DIR)",
+            "ir": "$(AXIVION_OUTFILE)",
+            "name": "$(AXIVION_PROJECTNAME)"
+        }
+    },
+    "_Format": "1.0",
+    "_Version": "7.2.0",
+    "_VersionNum": [
+        7,
+        2,
+        0,
+        7204
+    ]
+}
