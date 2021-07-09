@@ -21,14 +21,18 @@ export ENABLE_ANALYSIS=ON
 
 export PROJECTNAME=DemoNetworkFilterAnalysis
 
-declare -A COMPONENTS=(
-    [TimeServer]=timeServer.instance.bin
-    [Ticker]=ticker.instance.bin
-    [NwStack1]=nwStack1.instance.bin
-    [NwStack2]=nwStack2.instance.bin
-    [FilterListener]=filterListener.instance.bin
-    [EntropySource]=entropySource.instance.bin
-    [FilterSender]=filterSender.instance.bin
+# The TARGETS variable defines the CMake build targets and outfiles for multiple
+# analysis projects. Usually the targets are components of a TRENTOS system. The
+# name of the analysis project will be "PROJECTNAME_TargetName".
+declare -A TARGETS=(
+    # [TargetName]="<BuildTarget> <OutfileInBuildDir>"
+    [TimeServer]="timeServer.instance.bin os_system/timeServer.instance.bin"
+    [Ticker]="ticker.instance.bin os_system/ticker.instance.bin"
+    [NwStack1]="nwStack1.instance.bin os_system/nwStack1.instance.bin"
+    [NwStack2]="nwStack2.instance.bin os_system/nwStack2.instance.bin"
+    [FilterListener]="filterListener.instance.bin os_system/filterListener.instance.bin"
+    [EntropySource]="entropySource.instance.bin os_system/entropySource.instance.bin"
+    [FilterSender]="filterSender.instance.bin os_system/filterSender.instance.bin"
 )
 
 
@@ -78,10 +82,10 @@ else
     export AXIVION_DASHBOARD_URL=http://localhost:9090/axivion
     export AXIVION_SOURCESERVER_GITDIR=${AXIVION_PROJECT_DIR}/.git
 
-    for COMP_NAME in "${!COMPONENTS[@]}"; do
+    for TARGET_NAME in "${!TARGETS[@]}"; do
 
         # check if database file already exists
-        DATABASE_FILE=${LOCAL_FILESTORAGE_DIR}/${PROJECTNAME}_${COMP_NAME}.db
+        DATABASE_FILE=${LOCAL_FILESTORAGE_DIR}/${PROJECTNAME}_${TARGET_NAME}.db
 
         if [[ ! -f "${DATABASE_FILE}" ]]; then
 
@@ -101,20 +105,23 @@ fi
 # Do analysis
 #-------------------------------------------------------------------------------
 
-# do "clean before" for the first component build
+# do "clean before" for the first build
 export AXIVION_CLEAN_BEFORE=true
 
-for COMP_NAME in "${!COMPONENTS[@]}"; do
+for TARGET_NAME in "${!TARGETS[@]}"; do
 
-    # set environment variables for component
-    export BUILD_TARGET=${COMPONENTS[${COMP_NAME}]}
-    export AXIVION_PROJECTNAME=${PROJECTNAME}_${COMP_NAME}
-    export AXIVION_OUTFILE=${BUILD_DIR}/os_system/${BUILD_TARGET}
+    # set project name for target
+    export AXIVION_PROJECTNAME=${PROJECTNAME}_${TARGET_NAME}
+
+    # create target arguments list and set environment variables
+    read -a TARGET_ARGS <<< ${TARGETS[${TARGET_NAME}]}
+    export BUILD_TARGET=${TARGET_ARGS[0]}
+    export AXIVION_OUTFILE=${BUILD_DIR}/${TARGET_ARGS[1]}
 
     # run axivion
     axivion_ci -j
 
-    # skip "clean before" after the first component build
+    # skip "clean before" after the first build
     export AXIVION_CLEAN_BEFORE=false
 
 done
