@@ -13,12 +13,16 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
 # set common paths
-source ${SCRIPT_DIR}/set_common_paths
+source ${SCRIPT_DIR}/set_axivion_config
 
 
 #-------------------------------------------------------------------------------
 # Build the analysis component
 #-------------------------------------------------------------------------------
 
-cd ${REPO_DIR}
-seos_sandbox/build-system.sh ${SOURCE_DIR} zynq7000 ${BUILD_DIR} -D CMAKE_BUILD_TYPE=Debug
+SANDBOX_DIR="${SCRIPT_DIR}/../../../../seos_sandbox"
+SOURCE_DIR="${SCRIPT_DIR}/.."
+
+cd ${SANDBOX_DIR}
+
+./build-system.sh ${SOURCE_DIR} zynq7000 ${BUILD_DIR} -D CMAKE_BUILD_TYPE=Debug

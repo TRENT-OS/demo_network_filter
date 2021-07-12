@@ -1,0 +1,37 @@
+#!/bin/bash -ue
+
+#-------------------------------------------------------------------------------
+# Copyright (C) 2021, HENSOLDT Cyber GmbH
+#
+# Set variables for the specific analysis project.
+#-------------------------------------------------------------------------------
+
+unset_axivion_config () {
+    unset PROJECTNAME
+    unset TARGETS
+    unset BUILD_DIR
+}
+
+set_axivion_config() {
+    PROJECTNAME=DemoNetworkFilterAnalysis
+
+    # The TARGETS variable defines the CMake build targets and outfiles for 1-n
+    # analysis projects. Usually the targets are components of a TRENTOS system.
+    # The name of the analysis project will be "PROJECTNAME_TargetName".
+    declare -Ag TARGETS=(
+
+        # [TargetName]="<BuildTarget> <OutfileInBuildDir>"
+
+        [TimeServer]="timeServer.instance.bin os_system/timeServer.instance.bin"
+        [Ticker]="ticker.instance.bin os_system/ticker.instance.bin"
+        [NwStack1]="nwStack1.instance.bin os_system/nwStack1.instance.bin"
+        [NwStack2]="nwStack2.instance.bin os_system/nwStack2.instance.bin"
+        [FilterListener]="filterListener.instance.bin os_system/filterListener.instance.bin"
+        [EntropySource]="entropySource.instance.bin os_system/entropySource.instance.bin"
+        [FilterSender]="filterSender.instance.bin os_system/filterSender.instance.bin"
+    )
+
+    BUILD_DIR="/home/user/build_analysis"
+}
+
+set_axivion_config
