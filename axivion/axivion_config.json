@@ -1,8 +1,19 @@
 {
-    "#": "NOTE: Evaluation order is from bottom to top",
-    "#": "TODO: Change rule config to desired variant",
-    "_Layers": [
-        "project_config.json",
-        "analysis_config_axivion_template.json"
+    "Analysis": {
+        "Analysis-GlobalOptions": {
+            "global_excludes": [
+                "/home/user/build_analysis/*",
+                "seos_sandbox/sdk-sel4-camkes/*",
+                "*/3rdParty/*"
+            ]
+        }
+    },
+    "_Format": "1.0",
+    "_Version": "7.2.0",
+    "_VersionNum": [
+        7,
+        2,
+        0,
+        7204
     ]
 }
