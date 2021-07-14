@@ -3,7 +3,7 @@
         "Analysis-GlobalOptions": {
             "global_excludes": [
                 "/home/user/build_analysis/*",
-                "seos_sandbox/sdk-sel4-camkes/*",
+                "*/sdk-sel4-camkes/*",
                 "*/3rdParty/*"
             ]
         }
