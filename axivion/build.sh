@@ -5,6 +5,9 @@
 #
 # Build the analysis component.
 #
+# Usage: build.sh [sandbox_dir]
+#     sandbox_dir   Folder of 'build-system.sh' (default: seos_sandbox).
+#
 # The environment variable ENABLE_ANALYSIS has to be set to ON if the build
 # shall be executed with the Axivion Suite. Default for regular build is OFF.
 #-------------------------------------------------------------------------------
@@ -14,14 +17,29 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
 # set common paths
 source ${SCRIPT_DIR}/set_axivion_config
+SOURCE_DIR="${SCRIPT_DIR}/.."
+
+
+#-------------------------------------------------------------------------------
+# Get arguments / show usage information
+#-------------------------------------------------------------------------------
+
+SANDBOX_DIR=${1:-"seos_sandbox"}
+
+USAGE_INFO="Usage: $(basename $0) [sandbox_dir]
+    sandbox_dir   Folder of 'build-system.sh' (default: seos_sandbox)."
+
+if [ ! -f "${SANDBOX_DIR}/build-system.sh" ]; then
+    echo "Invalid argument: SANDBOX_DIR=${SANDBOX_DIR} does not contain 'build-system.sh'."
+    echo
+    echo "${USAGE_INFO}"
+    exit 1
+fi
 
 
 #-------------------------------------------------------------------------------
 # Build the analysis component
 #-------------------------------------------------------------------------------
-
-SANDBOX_DIR="${SCRIPT_DIR}/../../../../seos_sandbox"
-SOURCE_DIR="${SCRIPT_DIR}/.."
 
 cd ${SANDBOX_DIR}
 
