@@ -29,7 +29,7 @@ SANDBOX_DIR=${1:-"seos_sandbox"}
 USAGE_INFO="Usage: $(basename $0) [sandbox_dir]
     sandbox_dir   Folder of 'build-system.sh' (default: seos_sandbox)."
 
-if [ ! -f "${SANDBOX_DIR}/build-system.sh" ]; then
+if [ ! -x "${SANDBOX_DIR}/build-system.sh" ]; then
     echo "Invalid argument: SANDBOX_DIR=${SANDBOX_DIR} does not contain 'build-system.sh'."
     echo
     echo "${USAGE_INFO}"
