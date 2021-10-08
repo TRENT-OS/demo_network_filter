@@ -8,23 +8,19 @@ import <std_connector.camkes>;
 
 #include "system_config.h"
 
-import "components/Ticker/Ticker.camkes";
-import "components/FilterListener/FilterListener.camkes";
-import "components/FilterSender/FilterSender.camkes";
+#include "components/FilterSender/FilterSender.camkes"
+#include "components/FilterListener/FilterListener.camkes"
 
-#include "os_network_stack/network_stack.camkes"
-
-NwStack_COMPONENT_DEFINE(
+#include "NetworkStack_PicoTcp/camkes/NetworkStack_PicoTcp.camkes"
+NetworkStack_PicoTcp_COMPONENT_DEFINE(
     NwStack1,
     NIC_DRIVER_RINGBUFFER_SIZE,
-    NETWORK_STACK_1_NUM_SOCKETS,
-    NwStack_NO_ADDITIONAL_INTERFACES)
+    NetworkStack_PicoTcp_NO_ADDITIONAL_INTERFACES)
 
-NwStack_COMPONENT_DEFINE(
+NetworkStack_PicoTcp_COMPONENT_DEFINE(
     NwStack2,
     NIC_DRIVER_RINGBUFFER_SIZE,
-    NETWORK_STACK_2_NUM_SOCKETS,
-    NwStack_NO_ADDITIONAL_INTERFACES)
+    NetworkStack_PicoTcp_NO_ADDITIONAL_INTERFACES)
 
 #include "EntropySource/camkes/EntropySource.camkes"
 EntropySource_COMPONENT_DEFINE(EntropySource)
@@ -50,24 +46,17 @@ assembly {
 
         TimeServer_INSTANCE_CONNECT_CLIENTS(
             timeServer,
-            ticker.timeServer_rpc,   ticker.timeServer_notify,
             nwStack1.timeServer_rpc, nwStack1.timeServer_notify,
             nwStack2.timeServer_rpc, nwStack2.timeServer_notify
         )
-
-        //----------------------------------------------------------------------
-        // Ticker
-        //----------------------------------------------------------------------
-        component Ticker ticker;
 
         //----------------------------------------------------------------------
         // NwStack #1
         //----------------------------------------------------------------------
         component NwStack1 nwStack1;
 
-        NwStack_INSTANCE_CONNECT(
+        NetworkStack_PicoTcp_INSTANCE_CONNECT(
             nwStack1,
-            ticker.e_timeout_nwstacktick1,
             nwDriver1
         )
 
@@ -76,9 +65,8 @@ assembly {
         //----------------------------------------------------------------------
         component NwStack2 nwStack2;
 
-        NwStack_INSTANCE_CONNECT(
+        NetworkStack_PicoTcp_INSTANCE_CONNECT(
             nwStack2,
-            ticker.e_timeout_nwstacktick2,
             nwDriver2
         )
 
@@ -87,14 +75,9 @@ assembly {
         //----------------------------------------------------------------------
         component FilterListener filterListener;
 
-        NwStack_INSTANCE_CONNECT_CLIENT(
+        NetworkStack_PicoTcp_INSTANCE_CONNECT_CLIENTS(
             nwStack1,
-            filterListener,
-            networkStack_rpc,
-            // Since the Listener will handle incoming connections, it requires
-            // a minimum of two sockets.
-            socket_1_port,
-            socket_2_port)
+            filterListener, networkStack)
 
         // Connect the FilterListener to the FilterSender to forward the
         // received valid messages.
@@ -121,19 +104,31 @@ assembly {
         //----------------------------------------------------------------------
         component FilterSender filterSender;
 
-        NwStack_INSTANCE_CONNECT_CLIENT(
+        NetworkStack_PicoTcp_INSTANCE_CONNECT_CLIENTS(
             nwStack2,
-            filterSender,
-            networkStack_rpc,
-            socket_1_port)
+            filterSender, networkStack)
     }
     configuration {
         TimeServer_CLIENT_ASSIGN_BADGES(
-            ticker.timeServer_rpc,
             nwStack1.timeServer_rpc,
             nwStack2.timeServer_rpc
         )
         // Platform specific configuration.
         FILTER_DEMO_NIC_CONFIG(nwDriver1, nwDriver2)
+
+        NetworkStack_PicoTcp_CLIENT_ASSIGN_BADGES(
+            filterSender, networkStack,
+            filterListener, networkStack
+        )
+
+        NetworkStack_PicoTcp_INSTANCE_CONFIGURE_CLIENTS(
+            nwStack1,
+            2
+        )
+
+        NetworkStack_PicoTcp_INSTANCE_CONFIGURE_CLIENTS(
+            nwStack2,
+            1
+        )
     }
 }

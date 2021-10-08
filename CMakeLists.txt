@@ -50,54 +50,24 @@ DeclareCAmkESComponent(
         os_network_api
 )
 
-DeclareCAmkESComponent(
+NetworkStack_PicoTcp_DeclareCAmkESComponent(
     NwStack1
-    SOURCES
-        components/NwStack/src/NwStack.c
     C_FLAGS
-        -Wall
-        -Werror
-        -DNUM_SOCKETS=NETWORK_STACK_1_NUM_SOCKETS
-        -DCFG_ETH_ADDR=ETH_1_ADDR
-        -DCFG_ETH_GATEWAY_ADDR=ETH_1_GATEWAY_ADDR
-        -DCFG_ETH_SUBNET_MASK=ETH_1_SUBNET_MASK
-    LIBS
-        system_config
-        os_core_api
-        lib_debug
-        os_network_lib
-        TimeServer_client
+        -DNetworkStack_PicoTcp_USE_HARDCODED_IPADDR
+        -DDEV_ADDR=ETH_1_ADDR
+        -DGATEWAY_ADDR=ETH_1_GATEWAY_ADDR
+        -DSUBNET_MASK=ETH_1_SUBNET_MASK
+        -DOS_NETWORK_MAXIMUM_SOCKET_NO=NETWORK_STACK_1_NUM_SOCKETS
 )
 
-DeclareCAmkESComponent(
+NetworkStack_PicoTcp_DeclareCAmkESComponent(
     NwStack2
-    SOURCES
-        components/NwStack/src/NwStack.c
     C_FLAGS
-        -Wall
-        -Werror
-        -DNUM_SOCKETS=NETWORK_STACK_2_NUM_SOCKETS
-        -DCFG_ETH_ADDR=ETH_2_ADDR
-        -DCFG_ETH_GATEWAY_ADDR=ETH_2_GATEWAY_ADDR
-        -DCFG_ETH_SUBNET_MASK=ETH_2_SUBNET_MASK
-    LIBS
-        system_config
-        os_core_api
-        lib_debug
-        os_network_lib
-        TimeServer_client
-)
-
-DeclareCAmkESComponent(
-    Ticker
-    SOURCES
-        components/Ticker/src/Ticker.c
-    C_FLAGS
-        -Wall
-        -Werror
-    LIBS
-        os_core_api
-        lib_debug
+        -DNetworkStack_PicoTcp_USE_HARDCODED_IPADDR
+        -DDEV_ADDR=ETH_2_ADDR
+        -DGATEWAY_ADDR=ETH_2_GATEWAY_ADDR
+        -DSUBNET_MASK=ETH_2_SUBNET_MASK
+        -DOS_NETWORK_MAXIMUM_SOCKET_NO=NETWORK_STACK_2_NUM_SOCKETS
 )
 
 TimeServer_DeclareCAmkESComponent(

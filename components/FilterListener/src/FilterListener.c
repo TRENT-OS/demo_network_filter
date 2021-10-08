@@ -14,7 +14,6 @@
 #include "OS_Crypto.h"
 #include "OS_Error.h"
 #include "OS_Network.h"
-#include "OS_NetworkStackClient.h"
 
 //------------------------------------------------------------------------------
 static OS_Crypto_Handle_t hCrypto;
@@ -27,7 +26,135 @@ static const OS_Crypto_Config_t cryptoCfg =
         entropy_port),
 };
 
+static const if_OS_Socket_t networkStackCtx =
+    IF_OS_SOCKET_ASSIGN(networkStack);
+
 //------------------------------------------------------------------------------
+static OS_Error_t
+waitForNetworkStackInit(
+    const if_OS_Socket_t* const ctx)
+{
+    OS_NetworkStack_State_t networkStackState;
+
+    for (;;)
+    {
+        networkStackState = OS_NetworkSocket_getStatus(ctx);
+        if (networkStackState == RUNNING)
+        {
+            // NetworkStack up and running.
+            return OS_SUCCESS;
+        }
+        else if (networkStackState == FATAL_ERROR)
+        {
+            // NetworkStack will not come up.
+            Debug_LOG_ERROR("A FATAL_ERROR occurred in the Network Stack component.");
+            return OS_ERROR_ABORTED;
+        }
+
+        // Yield to wait until the stack is up and running.
+        seL4_Yield();
+    }
+}
+
+static OS_Error_t
+waitForIncomingConnection(
+    const int srvHandleId)
+{
+    OS_Error_t ret;
+
+    // Wait for the event letting us know that the connection was successfully
+    // established.
+    for (;;)
+    {
+        networkStack_event_notify_wait();
+
+        char evtBuffer[128];
+        const size_t evtBufferSize = sizeof(evtBuffer);
+        int numberOfSocketsWithEvents;
+
+        ret = OS_NetworkSocket_getPendingEvents(
+                  &networkStackCtx,
+                  evtBuffer,
+                  evtBufferSize,
+                  &numberOfSocketsWithEvents);
+        if (ret != OS_SUCCESS)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() failed, code %d",
+                            ret);
+            break;
+        }
+
+        if (numberOfSocketsWithEvents == 0)
+        {
+            Debug_LOG_TRACE("OS_NetworkSocket_getPendingEvents() returned "
+                            "without any pending events");
+            continue;
+        }
+
+        // We only opened one socket, so if we get more events, this is not ok.
+        if (numberOfSocketsWithEvents != 1)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned with "
+                            "unexpected #events: %d", numberOfSocketsWithEvents);
+            ret = OS_ERROR_INVALID_STATE;
+            break;
+        }
+
+        OS_NetworkSocket_Evt_t event;
+        memcpy(&event, evtBuffer, sizeof(event));
+
+        if (event.socketHandle != srvHandleId)
+        {
+            Debug_LOG_ERROR("Unexpected handle received: %d, expected: %d",
+                            event.socketHandle, srvHandleId);
+            ret = OS_ERROR_INVALID_HANDLE;
+            break;
+        }
+
+        // Socket has been closed by NetworkStack component.
+        if (event.eventMask & OS_SOCK_EV_FIN)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_FIN for handle: %d",
+                            event.socketHandle);
+            ret = OS_ERROR_NETWORK_CONN_REFUSED;
+            break;
+        }
+
+        // Incoming connection received.
+        if (event.eventMask & OS_SOCK_EV_CONN_ACPT)
+        {
+            Debug_LOG_DEBUG("OS_NetworkSocket_getPendingEvents() returned "
+                            "connection established for handle: %d",
+                            event.socketHandle);
+            ret = OS_SUCCESS;
+            break;
+        }
+
+        // Remote socket requested to be closed only valid for clients.
+        if (event.eventMask & OS_SOCK_EV_CLOSE)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_CLOSE for handle: %d",
+                            event.socketHandle);
+            ret = OS_ERROR_CONNECTION_CLOSED;
+            break;
+        }
+
+        // Error received - print error.
+        if (event.eventMask & OS_SOCK_EV_ERROR)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_ERROR for handle: %d, code: %d",
+                            event.socketHandle, event.currentError);
+            ret = event.currentError;
+            break;
+        }
+    }
+
+    return ret;
+}
+
 static void
 forwardRecvData(
     const void* const receivedData,
@@ -154,31 +281,11 @@ processRecvData(
     }
 }
 
-static void
-init_network_client_api(void)
-{
-    static OS_Dataport_t dataports[FILTER_LISTENER_NUM_SOCKETS] =
-    {
-        OS_DATAPORT_ASSIGN(socket_1_port),
-        OS_DATAPORT_ASSIGN(socket_2_port)
-    };
-
-    static OS_NetworkStackClient_SocketDataports_t config =
-    {
-        .number_of_sockets = ARRAY_SIZE(dataports),
-        .dataport = dataports
-    };
-
-    OS_NetworkStackClient_init(&config);
-}
-
 //------------------------------------------------------------------------------
 int
 run(void)
 {
     Debug_LOG_INFO("Starting Filter Listener");
-
-    init_network_client_api();
 
     OS_Error_t ret = OS_Crypto_init(&hCrypto, &cryptoCfg);
     if (ret != OS_SUCCESS)
@@ -187,22 +294,49 @@ run(void)
         return -1;
     }
 
-    OS_NetworkServer_Socket_t tcp_socket =
+    // Check and wait until the NetworkStack component is up and running.
+    ret = waitForNetworkStackInit(&networkStackCtx);
+    if (OS_SUCCESS != ret)
     {
-        .domain = OS_AF_INET,
-        .type   = OS_SOCK_STREAM,
-        .listen_port = FILTER_LISTENER_PORT,
-        .backlog   = 1,
-    };
+        Debug_LOG_ERROR("waitForNetworkStackInit() failed with: %d", ret);
+        return -1;
+    }
 
-    OS_NetworkServer_Handle_t hServer;
-    ret = OS_NetworkServerSocket_create(
-              NULL,
-              &tcp_socket,
-              &hServer);
+    OS_NetworkSocket_Handle_t hServer;
+    ret = OS_NetworkSocket_create(
+              &networkStackCtx,
+              &hServer,
+              OS_AF_INET,
+              OS_SOCK_STREAM);
     if (ret != OS_SUCCESS)
     {
-        Debug_LOG_ERROR("OS_NetworkServerSocket_create() failed, code %d", ret);
+        Debug_LOG_ERROR("OS_NetworkSocket_create() failed, code %d", ret);
+        return -1;
+    }
+
+    const OS_NetworkSocket_Addr_t dstAddr =
+    {
+        .addr = OS_INADDR_ANY_STR,
+        .port = FILTER_LISTENER_PORT
+    };
+
+    ret = OS_NetworkSocket_bind(
+              hServer,
+              &dstAddr);
+    if (ret != OS_SUCCESS)
+    {
+        Debug_LOG_ERROR("OS_NetworkSocket_bind() failed, code %d", ret);
+        OS_NetworkSocket_close(hServer);
+        return -1;
+    }
+
+    ret = OS_NetworkSocket_listen(
+              hServer,
+              1);
+    if (ret != OS_SUCCESS)
+    {
+        Debug_LOG_ERROR("OS_NetworkSocket_listen() failed, code %d", ret);
+        OS_NetworkSocket_close(hServer);
         return -1;
     }
 
@@ -212,14 +346,28 @@ run(void)
     {
         Debug_LOG_INFO("Accepting new connection");
         OS_NetworkSocket_Handle_t hSocket;
-        ret = OS_NetworkServerSocket_accept(
-                  hServer,
-                  &hSocket);
+        OS_NetworkSocket_Addr_t srcAddr = {0};
 
+        do
+        {
+            ret = waitForIncomingConnection(hServer.handleID);
+            if (ret != OS_SUCCESS)
+            {
+                Debug_LOG_ERROR("waitForIncomingConnection() failed, error %d", ret);
+                OS_NetworkSocket_close(hSocket);
+                return -1;
+            }
+
+            ret = OS_NetworkSocket_accept(
+                      hServer,
+                      &hSocket,
+                      &srcAddr);
+        }
+        while (ret == OS_ERROR_TRY_AGAIN);
         if (ret != OS_SUCCESS)
         {
-            Debug_LOG_ERROR("OS_NetworkServerSocket_accept() failed, error %d",
-                            ret);
+            Debug_LOG_ERROR("OS_NetworkSocket_accept() failed, error %d", ret);
+            OS_NetworkSocket_close(hSocket);
             return -1;
         }
 
@@ -244,6 +392,11 @@ run(void)
                 processRecvData(receivedData, actualLenRecv);
                 continue;
 
+            case OS_ERROR_TRY_AGAIN:
+                Debug_LOG_TRACE(
+                    "OS_NetworkSocket_read() reported try again");
+                continue;
+
             case OS_ERROR_CONNECTION_CLOSED:
                 Debug_LOG_INFO(
                     "OS_NetworkSocket_read() reported connection closed");
@@ -260,7 +413,7 @@ run(void)
                 break;
             }
         }
-        while (ret == OS_SUCCESS);
+        while (ret == OS_SUCCESS || ret == OS_ERROR_TRY_AGAIN);
 
         OS_NetworkSocket_close(hSocket);
     }

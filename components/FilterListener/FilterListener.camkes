@@ -4,10 +4,13 @@
  * Copyright (C) 2021, HENSOLDT Cyber GmbH
  */
 
-import "../FilterSender/if_FilterSender.camkes";
+#pragma once
+
+#include "../FilterSender/if_FilterSender.camkes"
+
+#include "if_OS_Socket.camkes"
 
 import <if_OS_Entropy.camkes>;
-import <if_OS_Socket.camkes>;
 
 component FilterListener {
     control;
@@ -19,12 +22,7 @@ component FilterListener {
 
     //--------------------------------------------------------------------------
     // Networking
-    uses if_OS_Socket networkStack_rpc;
-
-    // Since the Listener will handle incoming connections, it requires a
-    // minimum of two sockets = two dataports.
-    dataport Buf socket_1_port;
-    dataport Buf socket_2_port;
+    IF_OS_SOCKET_USE(networkStack)
 
     //-------------------------------------------------
     // FilterSender

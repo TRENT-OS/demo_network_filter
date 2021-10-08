@@ -4,9 +4,11 @@
  * Copyright (C) 2021, HENSOLDT Cyber GmbH
  */
 
-import "if_FilterSender.camkes";
+#pragma once
 
-import <if_OS_Socket.camkes>;
+#include "if_FilterSender.camkes"
+
+#include "if_OS_Socket.camkes"
 
 component FilterSender {
 
@@ -15,8 +17,5 @@ component FilterSender {
 
     //--------------------------------------------------------------------------
     // Networking
-    uses if_OS_Socket networkStack_rpc;
-
-    // The application will only use one socket so one dataport is sufficient.
-    dataport Buf socket_1_port;
+    IF_OS_SOCKET_USE(networkStack)
 }

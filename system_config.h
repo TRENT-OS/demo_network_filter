@@ -57,7 +57,6 @@
 //-----------------------------------------------------------------------------
 // Filter Sender
 //-----------------------------------------------------------------------------
-#define FILTER_SENDER_NUM_SOCKETS       1
 #define FILTER_SENDER_IP_ADDR           "10.0.0.1"
 #define FILTER_SENDER_PORT              6000
 
@@ -65,14 +64,13 @@
 //-----------------------------------------------------------------------------
 // Filter Listener
 //-----------------------------------------------------------------------------
-#define FILTER_LISTENER_NUM_SOCKETS     2
 #define FILTER_LISTENER_PORT            5560
 
 
 //-----------------------------------------------------------------------------
 // Network Stack 1
 //-----------------------------------------------------------------------------
-#define NETWORK_STACK_1_NUM_SOCKETS     FILTER_LISTENER_NUM_SOCKETS
+#define NETWORK_STACK_1_NUM_SOCKETS     2
 #define ETH_1_ADDR                      "10.0.0.10"
 #define ETH_1_GATEWAY_ADDR              "10.0.0.1"
 #define ETH_1_SUBNET_MASK               "255.255.255.0"
@@ -81,7 +79,7 @@
 //-----------------------------------------------------------------------------
 // Network Stack 2
 //-----------------------------------------------------------------------------
-#define NETWORK_STACK_2_NUM_SOCKETS     FILTER_SENDER_NUM_SOCKETS
+#define NETWORK_STACK_2_NUM_SOCKETS     1
 #define ETH_2_ADDR                      "10.0.0.11"
 #define ETH_2_GATEWAY_ADDR              "10.0.0.1"
 #define ETH_2_SUBNET_MASK               "255.255.255.0"

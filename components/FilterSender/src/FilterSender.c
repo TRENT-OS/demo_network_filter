@@ -8,47 +8,153 @@
 
 #include "lib_debug/Debug.h"
 #include <camkes.h>
+#include <string.h>
 
 #include "OS_Error.h"
 #include "OS_Network.h"
-#include "OS_NetworkStackClient.h"
 
 //------------------------------------------------------------------------------
 typedef struct
 {
-    OS_Dataport_t       dataport;
-    OS_Network_Socket_t tcpSocket;
+    OS_Dataport_t           dataport;
+    OS_NetworkSocket_Addr_t dstAddr;
 }
 FilterSender_t;
 
 static FilterSender_t ctx =
 {
-    .dataport   = OS_DATAPORT_ASSIGN(filterSender_port),
-    .tcpSocket  =
+    .dataport = OS_DATAPORT_ASSIGN(filterSender_port),
+    .dstAddr  =
     {
-        .domain = OS_AF_INET,
-        .type   = OS_SOCK_STREAM,
-        .name   = FILTER_SENDER_IP_ADDR,
-        .port   = FILTER_SENDER_PORT
+        .addr = FILTER_SENDER_IP_ADDR,
+        .port = FILTER_SENDER_PORT
     },
 };
 
+static const if_OS_Socket_t networkStackCtx =
+    IF_OS_SOCKET_ASSIGN(networkStack);
+
 //------------------------------------------------------------------------------
-static void
-init_network_client_api(void)
+static OS_Error_t
+connectSocket(
+    OS_NetworkSocket_Handle_t* const socketHandle,
+    const OS_NetworkSocket_Addr_t* const dstAddr)
 {
-    static OS_Dataport_t dataports[FILTER_SENDER_NUM_SOCKETS] =
+    OS_Error_t ret = OS_NetworkSocket_create(
+                         &networkStackCtx,
+                         socketHandle,
+                         OS_AF_INET,
+                         OS_SOCK_STREAM);
+    if (ret != OS_SUCCESS)
     {
-        OS_DATAPORT_ASSIGN(socket_1_port)
-    };
+        Debug_LOG_ERROR("OS_NetworkSocket_create() failed with: %d", ret);
+        return ret;
+    }
 
-    static OS_NetworkStackClient_SocketDataports_t config =
+    ret = OS_NetworkSocket_connect(*socketHandle, dstAddr);
+    if (ret != OS_SUCCESS)
     {
-        .number_of_sockets = ARRAY_SIZE(dataports),
-        .dataport = dataports
-    };
+        Debug_LOG_ERROR("OS_NetworkSocket_connect() failed, code %d", ret);
+        OS_NetworkSocket_close(*socketHandle);
+        return ret;
+    }
 
-    OS_NetworkStackClient_init(&config);
+    static char evtBuffer[128];
+    const size_t evtBufferSize = sizeof(evtBuffer);
+    int numberOfSocketsWithEvents;
+
+    // Wait for the event letting us know that the connection was successfully
+    // established.
+    for (;;)
+    {
+        networkStack_event_notify_wait();
+
+        ret = OS_NetworkSocket_getPendingEvents(
+                  &networkStackCtx,
+                  evtBuffer,
+                  evtBufferSize,
+                  &numberOfSocketsWithEvents);
+        if (ret != OS_SUCCESS)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() failed, code %d",
+                            ret);
+            break;
+        }
+
+        if (numberOfSocketsWithEvents == 0)
+        {
+            Debug_LOG_TRACE("OS_NetworkSocket_getPendingEvents() returned "
+                            "without any pending events");
+            continue;
+        }
+
+        // We only opened one socket, so if we get more events, this is not ok.
+        if (numberOfSocketsWithEvents != 1)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned with "
+                            "unexpected #events: %d", numberOfSocketsWithEvents);
+            ret = OS_ERROR_INVALID_STATE;
+            break;
+        }
+
+        OS_NetworkSocket_Evt_t event;
+        memcpy(&event, evtBuffer, sizeof(event));
+
+        if (event.socketHandle != socketHandle->handleID)
+        {
+            Debug_LOG_ERROR("Unexpected handle received: %d, expected: %d",
+                            event.socketHandle, socketHandle->handleID);
+            ret = OS_ERROR_INVALID_HANDLE;
+            break;
+        }
+
+        // Socket has been closed by NetworkStack component.
+        if (event.eventMask & OS_SOCK_EV_FIN)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_FIN for handle: %d",
+                            event.socketHandle);
+            ret = OS_ERROR_NETWORK_CONN_REFUSED;
+            break;
+        }
+
+        // Connection successfully established.
+        if (event.eventMask & OS_SOCK_EV_CONN_EST)
+        {
+            Debug_LOG_DEBUG("OS_NetworkSocket_getPendingEvents() returned "
+                            "connection established for handle: %d",
+                            event.socketHandle);
+            ret = OS_SUCCESS;
+            break;
+        }
+
+        // Remote socket requested to be closed only valid for clients.
+        if (event.eventMask & OS_SOCK_EV_CLOSE)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_CLOSE for handle: %d",
+                            event.socketHandle);
+            ret = OS_ERROR_CONNECTION_CLOSED;
+            break;
+        }
+
+        // Error received - print error.
+        if (event.eventMask & OS_SOCK_EV_ERROR)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_getPendingEvents() returned "
+                            "OS_SOCK_EV_ERROR for handle: %d, code: %d",
+                            event.socketHandle, event.currentError);
+            ret = event.currentError;
+            break;
+        }
+    }
+
+    if (ret != OS_SUCCESS)
+    {
+        OS_NetworkSocket_close(*socketHandle);
+    }
+
+    return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -57,14 +163,12 @@ filterSender_rpc_forwardRecvData(
     const size_t requestedLen,
     size_t* const actualLen)
 {
-    OS_NetworkSocket_Handle_t hClient;
-    OS_Error_t ret = OS_NetworkSocket_create(
-                         NULL,
-                         &ctx.tcpSocket,
-                         &hClient);
+    OS_NetworkSocket_Handle_t hSocket;
+
+    OS_Error_t ret = connectSocket(&hSocket, &ctx.dstAddr);
     if (ret != OS_SUCCESS)
     {
-        Debug_LOG_ERROR("OS_NetworkSocket_create() failed, code %d", ret);
+        Debug_LOG_ERROR("connectSocket() failed with err %d", ret);
         return ret;
     }
 
@@ -85,18 +189,21 @@ filterSender_rpc_forwardRecvData(
         size_t lenWritten = 0;
 
         ret = OS_NetworkSocket_write(
-                  hClient,
+                  hSocket,
                   offset,
                   requestedLen - sumLenWritten,
                   &lenWritten);
 
         sumLenWritten += lenWritten;
 
-        if (ret != OS_SUCCESS)
+        if (ret == OS_ERROR_TRY_AGAIN)
         {
-            Debug_LOG_ERROR(
-                "OS_NetworkSocket_write() failed, code %d", ret);
-            OS_NetworkSocket_close(hClient);
+            continue;
+        }
+        else if (ret != OS_SUCCESS)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_write() failed with %d", ret);
+            OS_NetworkSocket_close(hSocket);
             *actualLen = sumLenWritten;
             return ret;
         }
@@ -104,18 +211,9 @@ filterSender_rpc_forwardRecvData(
         offset += sumLenWritten;
     }
 
-    OS_NetworkSocket_close(hClient);
+    OS_NetworkSocket_close(hSocket);
 
     *actualLen = sumLenWritten;
 
     return OS_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-void
-post_init(void)
-{
-    Debug_LOG_INFO("Initializing Filter Sender");
-
-    init_network_client_api();
 }

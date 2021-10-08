@@ -4,6 +4,8 @@
  * Copyright (C) 2021, HENSOLDT Cyber GmbH
  */
 
+#pragma once
+
 procedure if_FilterSender {
     include "OS_Error.h";
 

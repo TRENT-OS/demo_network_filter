@@ -23,9 +23,10 @@ set_axivion_config() {
         # [TargetName]="<BuildTarget> <OutfileInBuildDir>"
 
         [TimeServer]="timeServer.instance.bin os_system/timeServer.instance.bin"
-        [Ticker]="ticker.instance.bin os_system/ticker.instance.bin"
         [NwStack1]="nwStack1.instance.bin os_system/nwStack1.instance.bin"
         [NwStack2]="nwStack2.instance.bin os_system/nwStack2.instance.bin"
+        [NwStackTicker1]="nwStack1.ticker.instance.bin os_system/nwStack1.ticker.instance.bin"
+        [NwStackTicker2]="nwStack2.ticker.instance.bin os_system/nwStack2.ticker.instance.bin"
         [FilterListener]="filterListener.instance.bin os_system/filterListener.instance.bin"
         [EntropySource]="entropySource.instance.bin os_system/entropySource.instance.bin"
         [FilterSender]="filterSender.instance.bin os_system/filterSender.instance.bin"
