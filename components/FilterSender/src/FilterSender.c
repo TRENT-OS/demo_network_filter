@@ -67,7 +67,12 @@ connectSocket(
     // established.
     for (;;)
     {
-        networkStack_event_notify_wait();
+        ret = OS_NetworkSocket_wait(&networkStackCtx);
+        if (ret != OS_SUCCESS)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_wait() failed, code %d", ret);
+            break;
+        }
 
         ret = OS_NetworkSocket_getPendingEvents(
                   &networkStackCtx,

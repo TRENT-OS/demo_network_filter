@@ -66,7 +66,12 @@ waitForIncomingConnection(
     // established.
     for (;;)
     {
-        networkStack_event_notify_wait();
+        ret = OS_NetworkSocket_wait(&networkStackCtx);
+        if (ret != OS_SUCCESS)
+        {
+            Debug_LOG_ERROR("OS_NetworkSocket_wait() failed, code %d", ret);
+            break;
+        }
 
         char evtBuffer[128];
         const size_t evtBufferSize = sizeof(evtBuffer);
