@@ -34,7 +34,7 @@ DeclareCAmkESComponent(
         os_core_api
         lib_debug
         os_crypto
-        os_network
+        os_socket_client
 )
 
 DeclareCAmkESComponent(
@@ -47,7 +47,7 @@ DeclareCAmkESComponent(
         system_config
         os_core_api
         lib_debug
-        os_network
+        os_socket_client
 )
 
 NetworkStack_PicoTcp_DeclareCAmkESComponent(
