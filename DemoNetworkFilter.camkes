@@ -116,8 +116,13 @@ assembly {
         // Platform specific configuration.
         FILTER_DEMO_NIC_CONFIG(nwDriver1, nwDriver2)
 
+        // Use the following macro twice to make sure the badges are enumerated
+        // correctly for the two separate network stack instances.
         NetworkStack_PicoTcp_CLIENT_ASSIGN_BADGES(
-            filterSender, networkStack,
+            filterSender, networkStack
+        )
+
+        NetworkStack_PicoTcp_CLIENT_ASSIGN_BADGES(
             filterListener, networkStack
         )
 
