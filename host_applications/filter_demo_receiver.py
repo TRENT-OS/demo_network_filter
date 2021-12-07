@@ -85,7 +85,7 @@ def run_listener(listener_addr):
         connection, client_address = sock.accept()
 
         try:
-            print("Connection from {}:{}.".format((*client_address)))
+            print(f"Connection from {client_address[0]}:{client_address[1]}.".format((client_address)))
 
             while True:
                 received_data = connection.recv(1024)
@@ -114,7 +114,7 @@ def main() -> int:
 
     listener_addr = (args.addr, args.port)
 
-    print("Starting Receiver-App on {}:{}...".format(*listener_addr))
+    print(f"Starting Receiver-App on {listener_addr[0]}:{listener_addr[1]}...")
 
     try:
         run_listener(listener_addr)

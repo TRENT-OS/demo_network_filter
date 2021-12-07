@@ -61,13 +61,13 @@ def send_data(outgoing_data, receiver_addr):
     try:
         sock.connect(receiver_addr)
         filter_demo_utils.print_banner()
-        print("Established connection to {}:{}.".format(*receiver_addr))
+        print(f"Established connection to {receiver_addr[0]}:{receiver_addr[1]}.")
 
         print("Sending message...")
         sock.sendall(outgoing_data)
 
     except ConnectionError:
-        print("Could not connect to {}:{}.".format(*receiver_addr))
+        print(f"Could not connect to {receiver_addr[0]}:{receiver_addr[1]}.")
         print("Check if the receiving application is running.")
         raise
 
@@ -159,7 +159,7 @@ def main() -> int:
 
         # Send all the collected messages to the configured receiver.
         receiver_addr = (args.addr, args.port)
-        print("Sending all messages to {}:{}...".format(*receiver_addr))
+        print(f"Sending all messages to {receiver_addr[0]}:{receiver_addr[1]}...")
 
         send_message_queue(message_queue, receiver_addr)
         print("All messages successfully transmitted.")
