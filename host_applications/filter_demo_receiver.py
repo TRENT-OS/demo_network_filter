@@ -85,7 +85,7 @@ def run_listener(listener_addr):
         connection, client_address = sock.accept()
 
         try:
-            print(f"Connection from {client_address[0]}:{client_address[1]}.".format((client_address)))
+            print(f"Connection from {client_address[0]}:{client_address[1]}.")
 
             while True:
                 received_data = connection.recv(1024)
