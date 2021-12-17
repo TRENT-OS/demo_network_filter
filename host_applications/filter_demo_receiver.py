@@ -73,8 +73,7 @@ def run_listener(listener_addr):
     try:
         sock.bind(listener_addr)
     except OSError:
-        print("Failed to bind on {}:{}, address already in use.".format(
-            *listener_addr))
+        print(f"Failed to bind on {listener_addr[0]}:{listener_addr[1]}, address already in use.")
         raise
 
     sock.listen(1)
