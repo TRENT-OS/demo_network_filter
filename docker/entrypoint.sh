@@ -14,7 +14,7 @@ set -euxo pipefail
 eval $( fixuid -q )
 
 BRIDGE_NAME=br0
-TAP_INTERFACES=(tap0 tap1)
+TAP_INTERFACES=(tap0 tap1 tap2 tap3)
 IP_ADDRESS=10.0.0.1
 # netmask length in bits
 NETWORK_SIZE=24
