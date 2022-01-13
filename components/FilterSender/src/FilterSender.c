@@ -199,21 +199,20 @@ filterSender_rpc_forwardRecvData(
                   requestedLen - sumLenWritten,
                   &lenWritten);
 
-        sumLenWritten += lenWritten;
-
-        if (ret == OS_ERROR_TRY_AGAIN)
+        switch (ret)
         {
+        case OS_SUCCESS:
+            sumLenWritten += lenWritten;
+            offset += sumLenWritten;
+            break;
+        case OS_ERROR_TRY_AGAIN:
             continue;
-        }
-        else if (ret != OS_SUCCESS)
-        {
+        default:
             Debug_LOG_ERROR("OS_Socket_write() failed with %d", ret);
             OS_Socket_close(hSocket);
             *actualLen = sumLenWritten;
             return ret;
         }
-
-        offset += sumLenWritten;
     }
 
     OS_Socket_close(hSocket);
