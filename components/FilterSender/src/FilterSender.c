@@ -177,7 +177,8 @@ filterSender_rpc_forwardRecvData(
         return ret;
     }
 
-    const void* offset = OS_Dataport_getBuf(ctx.dataport);
+    // WARNING: Requires char* for pointer arithmetic below.
+    const char* const dpBuf = (char*)OS_Dataport_getBuf(ctx.dataport);
     const size_t dpSize = OS_Dataport_getSize(ctx.dataport);
 
     if (requestedLen > dpSize)
@@ -195,7 +196,7 @@ filterSender_rpc_forwardRecvData(
 
         ret = OS_Socket_write(
                   hSocket,
-                  offset,
+                  dpBuf + sumLenWritten,
                   requestedLen - sumLenWritten,
                   &lenWritten);
 
@@ -203,7 +204,6 @@ filterSender_rpc_forwardRecvData(
         {
         case OS_SUCCESS:
             sumLenWritten += lenWritten;
-            offset += sumLenWritten;
             break;
         case OS_ERROR_TRY_AGAIN:
             continue;
