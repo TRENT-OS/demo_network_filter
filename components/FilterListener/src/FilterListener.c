@@ -401,6 +401,10 @@ run(void)
             case OS_ERROR_TRY_AGAIN:
                 Debug_LOG_TRACE(
                     "OS_Socket_read() reported try again");
+
+                // Donate the remaining timeslice to a thread of the same
+                // priority and try to read again with the next turn.
+                seL4_Yield();
                 break;
 
             case OS_ERROR_CONNECTION_CLOSED:

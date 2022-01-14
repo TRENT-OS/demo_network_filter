@@ -207,6 +207,9 @@ filterSender_rpc_forwardRecvData(
             break;
 
         case OS_ERROR_TRY_AGAIN:
+            // Donate the remaining timeslice to a thread of the same priority
+            // and try to write again with the next turn.
+            seL4_Yield();
             break;
 
         default:
