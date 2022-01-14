@@ -388,6 +388,7 @@ run(void)
                       receivedData,
                       sizeof(receivedData),
                       &actualLenRecv);
+
             switch (ret)
             {
             case OS_SUCCESS:
@@ -395,12 +396,12 @@ run(void)
                     "OS_Socket_read() received %zu bytes of data",
                     actualLenRecv);
                 processRecvData(receivedData, actualLenRecv);
-                continue;
+                break;
 
             case OS_ERROR_TRY_AGAIN:
                 Debug_LOG_TRACE(
                     "OS_Socket_read() reported try again");
-                continue;
+                break;
 
             case OS_ERROR_CONNECTION_CLOSED:
                 Debug_LOG_INFO(

@@ -205,8 +205,10 @@ filterSender_rpc_forwardRecvData(
         case OS_SUCCESS:
             sumLenWritten += lenWritten;
             break;
+
         case OS_ERROR_TRY_AGAIN:
-            continue;
+            break;
+
         default:
             Debug_LOG_ERROR("OS_Socket_write() failed with %d", ret);
             OS_Socket_close(hSocket);
