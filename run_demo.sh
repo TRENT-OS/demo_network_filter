@@ -33,7 +33,7 @@ if [ ! -f ${IMAGE_PATH} ]; then
 fi
 
 # create the path to the proxy application
-PROXY_BIN_PATH=${SDK_PATH}/bin/proxy_app
+PROXY_BIN_PATH=${SDK_PATH}/proxy_app
 if [ ! -f ${PROXY_BIN_PATH} ]; then
     echo "ERROR: missing proxy application binary ${PROXY_BIN_PATH}"
     exit 1
